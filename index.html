@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Caminho ao Trenó de Natal</title>
+<style>
+:root{--blue:#0066ff;--blue2:#00b3ff;--ink:#ffffff;--mut:#9fb8e8;--bg:#03071a;--red:#ff5a5a}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(135deg,#050b24,#0a2a8a 55%,var(--blue));color:#fff;padding:20px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+header img{height:64px;width:64px;border-radius:14px;object-fit:cover}
+header h1{margin:0;font-size:22px}
+header p{margin:4px 0 0;opacity:.85;font-size:13px}
+.wrap{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;padding:14px;max-width:1100px;margin:auto}
+.full{grid-column:1/-1}
+@media(max-width:820px){.wrap{grid-template-columns:1fr}.full{grid-column:auto}}
+.card{background:#0b1a4a;border:1px solid #1d3a8a;border-radius:16px;padding:14px;box-shadow:0 6px 22px rgba(0,0,0,.35)}
+.card h2{margin:0 0 10px;font-size:15px}
+.weeks{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.weeks button{border:0;border-radius:999px;padding:7px 12px;background:#14296e;color:#fff;cursor:pointer;font-weight:600}
+.weeks button.on{background:var(--blue);color:#fff}
+svg{width:100%;height:auto;display:block}
+.lb{display:grid;grid-template-columns:28px 1fr 70px;gap:8px;align-items:center;margin:9px 0}
+.bar{height:11px;border-radius:99px;background:#14296e;overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--blue2),var(--blue));transition:width 1s}
+.name{font-size:13px;font-weight:600;margin-bottom:3px}
+.pts{text-align:right;font-weight:700;font-size:14px}
+.feed{max-height:380px;overflow-y:auto}
+.ev{display:flex;justify-content:space-between;gap:8px;padding:8px 6px;border-bottom:1px solid #1d3a8a;font-size:13px}
+.ev small{color:var(--mut)}
+.ev b{color:var(--blue)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:6px 4px;border-bottom:1px solid #1d3a8a;text-align:right}
+th:first-child,td:first-child{text-align:left}
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cat{background:#071540;border:1px solid #1d3a8a;border-radius:12px;padding:10px;font-size:12px;color:var(--mut)}
+.cat b{display:block;color:var(--ink);font-size:13px;margin-top:3px}
+.rules{font-size:12.5px;color:var(--mut);line-height:1.6;margin:0}
+.login{max-width:340px;margin:60px auto;background:#0b1a4a;border:1px solid #1d3a8a;border-radius:16px;padding:22px;box-shadow:0 6px 22px rgba(0,0,0,.35)}
+.login input{width:100%;padding:10px;margin:6px 0 12px;border:1px solid #1d3a8a;border-radius:10px;font-size:15px;background:#050b24;color:#fff}
+.login button{width:100%;padding:11px;border:0;border-radius:10px;background:var(--blue);color:#fff;font-weight:700;font-size:15px;cursor:pointer}
+.err{color:var(--red);font-size:13px;min-height:18px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<img src="img/cartaz.png" alt="Caminho ao Comboio de Natal" style="display:block;width:100%;max-width:1100px;margin:14px auto 0;border-radius:16px">
+<header>
+  <div>
+    <h1>🛷 Caminho ao Trenó de Natal</h1>
+    <p id="sub">Dezembro 2026</p>
+  </div>
+</header>
+
+<div id="loginBox" class="login">
+  <h2 style="margin:0 0 10px;font-size:17px">Entrar</h2>
+  <label>Utilizador</label>
+  <input id="user" autocomplete="username" autocapitalize="none">
+  <label>Palavra-passe</label>
+  <input id="pass" type="password" autocomplete="current-password">
+  <button id="btnLogin">Entrar</button>
+  <div class="err" id="loginErr"></div>
+</div>
+
+<div id="game" class="wrap hide">
+  <div class="card full" id="hero" style="font-size:16px;font-weight:700;text-align:center"></div>
+  <div class="card">
+    <h2>Percurso</h2>
+    <div class="weeks" id="weeks"></div>
+    <svg id="track" viewBox="0 0 600 380" aria-label="Percurso do trenó">
+      <rect x="0" y="0" width="600" height="380" rx="18" fill="#071540"/>
+      <path id="base" d="M40,320 C120,110 250,350 330,220 S520,70 560,120" fill="none" stroke="#1d3a8a" stroke-width="16" stroke-linecap="round"/>
+      <path id="prog" d="M40,320 C120,110 250,350 330,220 S520,70 560,120" fill="none" stroke="#00b3ff" stroke-width="10" stroke-linecap="round"/>
+      <g id="marks"></g>
+      <g id="sleds"></g>
+    </svg>
+    <p class="rules" style="margin-top:8px">Marcos semanais (no fim de cada semana): 23, 64, 105, 145 e 180 pontos. A escala ajusta-se ao líder: o trenó da frente fica sempre perto do fim do percurso.</p>
+  </div>
+  <div class="card">
+    <h2>Lances da semana</h2>
+    <div class="feed" id="feed"></div>
+  </div>
+  <div class="card">
+    <h2>Ranking</h2>
+    <div id="lb"></div>
+  </div>
+  <div class="card">
+    <h2>Campeões</h2>
+    <div class="cats" id="cats"></div>
+  </div>
+  <div class="card full">
+    <h2>Vendas da semana</h2>
+    <div style="overflow-x:auto"><table id="tbl"></table></div>
+  </div>
+  <div class="card full">
+    <h2>Como se ganham pontos</h2>
+    <p class="rules">
+      TV ou Meo Energia: 3 pontos por unidade.<br>
+      Seguros ou Diversidade: 1 ponto por unidade.<br>
+      Inquéritos NPS (mínimo 10 no mês): 5 pontos, somados no fim do mês.<br>
+      Desafio de evolução (semanal): 5 pontos ao colaborador que mais sobe em TV e Energia face à semana anterior.
+    </p>
+  </div>
+</div>
+
+<div id="ended" class="login hide">
+  <h2 style="margin:0 0 8px">O jogo terminou</h2>
+  <p class="rules">O jogo terminou a 15 de janeiro. Obrigado a todos.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const SUPABASE_URL = "https://nfpjwxezlrunruzqbhjn.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Nf9n_q5rIe3t_dek7H0A9w_gloi0dEJ";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const END = new Date("2027-01-16T00:00:00Z");
+const MAX = 180, MARKS = [23, 64, 105, 145, 180];
+const WK = [[1, 4], [5, 11], [12, 18], [19, 25], [26, 31]];
+const NS = "http://www.w3.org/2000/svg";
+let G = null, wk = 0, shown = {}, raf = 0, SC = 60;
+
+const $ = id => document.getElementById(id);
+const num = x => +x || 0;
+const wsum = (a, w) => { const [i, j] = WK[w]; return (a || []).slice(i - 1, j).reduce((x, y) => x + num(y), 0); };
+
+function build(data) {
+  const ps = data.jogadores.map(p => ({
+    nome: p.nome, tv: p.tv || [], en: p.energia || [], se: p.seguros || [], dv: p.diversidade || [], inq: p.inqueritos, bon: []
+  }));
+  ps.forEach(p => {
+    p.tvW = WK.map((_, w) => wsum(p.tv, w));
+    p.enW = WK.map((_, w) => wsum(p.en, w));
+    p.seW = WK.map((_, w) => wsum(p.se, w));
+    p.dvW = WK.map((_, w) => wsum(p.dv, w));
+    p.semana = WK.map((_, w) => 3 * (p.tvW[w] + p.enW[w]) + p.seW[w] + p.dvW[w]);
+    p.evo = WK.map((_, w) => w === 0 ? 0 : (p.tvW[w] + p.enW[w]) - (p.tvW[w - 1] + p.enW[w - 1]));
+  });
+  for (let d = 0; d < 31; d++) {
+    let best = null, bp = 0;
+    ps.forEach(p => {
+      const pt = 3 * (num(p.tv[d]) + num(p.en[d])) + num(p.se[d]) + num(p.dv[d]);
+      if (pt > bp) { bp = pt; best = p; }
+    });
+    if (best) {
+      const w = WK.findIndex(([i, j]) => d + 1 >= i && d + 1 <= j);
+      best.semana[w] += 2;
+      best.bon.push(d + 1);
+    }
+  }
+  for (let w = 1; w < WK.length; w++) {
+    const best = ps.reduce((a, b) => (b.evo[w] > a.evo[w] ? b : a), ps[0]);
+    if (best && best.evo[w] > 0) best.semana[w] += 5;
+  }
+  ps.forEach(p => {
+    let s = 0;
+    p.acum = WK.map((_, w) => (s += p.semana[w]));
+    if (num(p.inq) >= 10) p.acum[WK.length - 1] += 5;
+  });
+  return ps;
+}
+
+function eventsOf(ps, w) {
+  const [i, j] = WK[w], out = [];
+  ps.forEach(p => {
+    for (let d = i; d <= j; d++) {
+      const k = d - 1;
+      if (num(p.tv[k])) out.push({ d, nome: p.nome, t: "TV", q: num(p.tv[k]), pts: 3 * num(p.tv[k]) });
+      if (num(p.en[k])) out.push({ d, nome: p.nome, t: "Meo Energia", q: num(p.en[k]), pts: 3 * num(p.en[k]) });
+      if (num(p.se[k])) out.push({ d, nome: p.nome, t: "Seguros", q: num(p.se[k]), pts: num(p.se[k]) });
+      if (num(p.dv[k])) out.push({ d, nome: p.nome, t: "Diversidade", q: num(p.dv[k]), pts: num(p.dv[k]) });
+    }
+  });
+  ps.forEach(p => p.bon.forEach(d => { if (d >= i && d <= j) out.push({ d, nome: p.nome, t: "⭐ Lance do dia", q: 2, pts: 2 }); }));
+  return out.sort((a, b) => b.d - a.d || a.nome.localeCompare(b.nome));
+}
+
+function weeksWithData(ps) {
+  const out = WK.map((_, w) => w).filter(w => ps.some(p => p.semana[w] > 0) || eventsOf(ps, w).length);
+  return out.length ? out : [0];
+}
+
+function initSleds(ps) {
+  const g = $("sleds"); g.innerHTML = "";
+  ps.forEach((p, idx) => {
+    g.innerHTML += `<g id="s${idx}"><text font-size="20" text-anchor="middle">🛷</text><text y="-20" font-size="10" font-weight="700" text-anchor="middle" stroke="#050b24" stroke-width="3" paint-order="stroke">${p.nome.split(" ")[0]}</text></g>`;
+  });
+}
+
+function drawMarks(pth, L) {
+  const mg = $("marks"); mg.innerHTML = "";
+  MARKS.filter(m => m <= SC).forEach(m => {
+    const pt = pth.getPointAtLength(m / SC * L);
+    mg.innerHTML += `<circle cx="${pt.x}" cy="${pt.y}" r="13" fill="#fff" stroke="#0a56c9" stroke-width="3"/><text x="${pt.x}" y="${pt.y + 4}" font-size="10" font-weight="700" text-anchor="middle" fill="#0a56c9">${m}</text>`;
+  });
+}
+
+function placeSled(idx, v, L, pth) {
+  const pt = pth.getPointAtLength(Math.max(0, Math.min(v, SC)) / SC * L);
+  const lane = idx % 2 ? 9 : -9;
+  const up = (idx % 3) * 3;
+  const el = $("s" + idx);
+  if (el) el.setAttribute("transform", `translate(${pt.x + lane},${pt.y - 6 - up})`);
+}
+
+function animateTrack(ps, w) {
+  const pth = $("prog"), L = pth.getTotalLength();
+  pth.style.strokeDasharray = L;
+  const top = Math.max(0, ...ps.map(p => p.acum[w]));
+  SC = Math.max(60, Math.ceil((top + 30) / 30) * 30);
+  drawMarks(pth, L);
+  pth.style.strokeDashoffset = L * (1 - Math.min(top, SC) / SC);
+  pth.style.transition = "stroke-dashoffset 1s ease";
+
+  const from = { ...shown }, to = {};
+  ps.forEach(p => to[p.nome] = p.acum[w]);
+  cancelAnimationFrame(raf);
+  const t0 = performance.now(), D = 1100;
+  const frame = now => {
+    const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3);
+    ps.forEach((p, idx) => {
+      const a = from[p.nome] ?? 0;
+      placeSled(idx, a + (to[p.nome] - a) * e, L, pth);
+    });
+    if (k < 1) raf = requestAnimationFrame(frame);
+    else shown = to;
+  };
+  raf = requestAnimationFrame(frame);
+}
+
+function render() {
+  const ps = G.ps;
+  const wl = weeksWithData(ps);
+  if (!wl.includes(wk)) wk = wl[wl.length - 1];
+  $("weeks").innerHTML = wl.map(w => `<button class="${w === wk ? "on" : ""}" data-w="${w}">Semana ${w + 1}</button>`).join("");
+  $("weeks").querySelectorAll("button").forEach(b => b.onclick = () => { wk = +b.dataset.w; render(); });
+
+  animateTrack(ps, wk);
+
+  const ev = eventsOf(ps, wk);
+  $("feed").innerHTML = ev.length
+    ? ev.map(e => `<div class="ev"><div><small>dia ${e.d}</small> · ${e.nome} <b>${e.t} +${e.q}</b></div><div><b>+${e.pts}</b></div></div>`).join("")
+    : `<p class="rules">Ainda não há lances nesta semana.</p>`;
+
+  const top1 = [...ps].sort((a, b) => b.semana[wk] - a.semana[wk])[0];
+  $("hero").innerHTML = top1 && top1.semana[wk] > 0
+    ? `🏆 Campeão da semana: <span style="color:#0a56c9">${top1.nome}</span> · ${top1.semana[wk]} pts`
+    : "🏆 Campeão da semana: ainda sem pontos";
+
+  const sorted = [...ps].sort((a, b) => b.acum[wk] - a.acum[wk]);
+  const medal = ["🥇", "🥈", "🥉"];
+  $("lb").innerHTML = sorted.map((p, i) => `<div class="lb"><div style="text-align:center">${medal[i] || (i + 1)}</div><div><div class="name">${p.nome}</div><div class="bar"><i data-v="${p.acum[wk]}"></i></div></div><div class="pts">${p.acum[wk]} pts</div></div>`).join("");
+  requestAnimationFrame(() => requestAnimationFrame(() => document.querySelectorAll("#lb .bar i").forEach(el => el.style.width = (el.dataset.v / SC * 100) + "%")));
+
+  $("tbl").innerHTML = `<tr><th>Colaborador</th><th>TV</th><th>Meo Energia</th><th>Seguros</th><th>Diversidade</th><th>Pontos da semana</th></tr>` +
+    ps.map(p => `<tr><td>${p.nome}</td><td>${p.tvW[wk]}</td><td>${p.enW[wk]}</td><td>${p.seW[wk]}</td><td>${p.dvW[wk]}</td><td><b>${p.semana[wk]}</b></td></tr>`).join("");
+
+  const cat = (t, n) => `<div class="cat">${t}<b>${n}</b></div>`;
+  const campeao = [...ps].sort((a, b) => b.semana[wk] - a.semana[wk])[0];
+  const evo = [...ps].sort((a, b) => b.evo[wk] - a.evo[wk])[0];
+  const inq = [...ps].filter(p => p.inq != null).sort((a, b) => num(b.inq) - num(a.inq))[0];
+  $("cats").innerHTML =
+    cat("🏆 Campeão da semana", campeao && campeao.semana[wk] > 0 ? campeao.nome : "–") +
+    cat("📈 Melhor evolução", evo && evo.evo[wk] > 0 ? evo.nome : "–") +
+    cat("⭐ Mais inquéritos NPS", inq ? inq.nome : "–") +
+    cat("📅 Mês", G.mes || "–");
+}
+
+function showGame(data) {
+  $("loginBox").classList.add("hide");
+  $("game").classList.remove("hide");
+  $("sub").textContent = (data.mes || "Dezembro") + " · atualizado em " + new Date(data.atualizado).toLocaleString("pt-PT");
+  G = { ps: build(data), mes: data.mes };
+  initSleds(G.ps);
+  render();
+}
+
+async function init() {
+  if (new Date() >= END) { $("loginBox").classList.add("hide"); $("ended").classList.remove("hide"); return; }
+  const { data: sess } = await sb.auth.getSession();
+  if (sess && sess.session) await load();
+}
+
+async function load() {
+  const { data, error } = await sb.from("jogo").select("data").eq("id", "jogo").maybeSingle();
+  if (error || !data) { $("loginErr").textContent = "Ainda não há dados para mostrar."; return; }
+  showGame(data.data);
+}
+
+$("btnLogin").onclick = async () => {
+  $("loginErr").textContent = "";
+  const email = $("user").value.trim().toLowerCase() + "@example.com";
+  const { error } = await sb.auth.signInWithPassword({ email, password: $("pass").value });
+  if (error) { $("loginErr").textContent = "Utilizador ou palavra-passe incorretos."; return; }
+  $("pass").value = "";
+  await load();
+};
+
+init();
+</script>
+</body>
+</html>
